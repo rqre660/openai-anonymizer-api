@@ -1,11 +1,11 @@
 export default async function handler(req, res) {
-  // 加上 CORS Headers
+  // ✅ 加上 CORS Headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") {
-    return res.status(200).end(); // 預檢請求快速回應
+    return res.status(200).end(); // ✅ 預檢請求快速回應
   }
 
   if (req.method !== "POST") {
