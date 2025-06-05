@@ -1,3 +1,18 @@
+import admin from "firebase-admin";
+import { readFileSync } from "fs";
+
+if (!admin.apps.length) {
+  const serviceAccount = JSON.parse(
+    readFileSync("./firebase-key.json", "utf8")
+  );
+
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
+
+const db = admin.firestore();
+
 export default async function handler(req, res) {
   // CORS 設定，允許跨來源請求
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -43,6 +58,14 @@ export default async function handler(req, res) {
     console.log("🔍 OpenAI 匿名結果：", JSON.stringify(resultData, null, 2));
 
     const result = resultData?.choices?.[0]?.message?.content?.trim() || "(無結果)";
+    
+    // ✅ 寫入 Firestore
+    await db.collection("messages").add({
+      original: text,
+      anonymized: result,
+      timestamp: Date.now()
+    });
+    
     return res.status(200).json({ anonymized:result });
 
   } catch (err) {
