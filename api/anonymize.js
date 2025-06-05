@@ -58,13 +58,13 @@ export default async function handler(req, res) {
     console.log("🔍 OpenAI 匿名結果：", JSON.stringify(resultData, null, 2));
 
     const result = resultData?.choices?.[0]?.message?.content?.trim() || "(無結果)";
-    
-    // ✅ 寫入 Firestore
-    await db.collection("messages").add({
-      original: text,
-      anonymized: result,
-      timestamp: Date.now()
-    });
+    try {
+      // ✅ 寫入 Firestore
+      await db.collection("messages").add({
+        original: text,
+        anonymized: result,
+        timestamp: Date.now()
+      });
     
     return res.status(200).json({ anonymized:result });
 
