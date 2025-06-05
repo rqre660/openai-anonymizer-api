@@ -1,11 +1,11 @@
 export default async function handler(req, res) {
-  // ✅ CORS 正確寫法
+  // ✅ 正確 CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") {
-    return res.status(200).end(); // ✅ 預檢請求直接結束
+    return res.status(200).end();
   }
 
   if (req.method !== "POST") {
@@ -13,24 +13,24 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { text } = req.body; // ✅ 這裡直接解構，不是 req.json()
+    const { text } = req.body; // ✅ 正確寫法，直接取 req.body（不是 req.json()）
 
     if (!text || text.trim().length === 0) {
       return res.status(400).json({ error: "Missing input text" });
     }
 
-    const apiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
         model: "gpt-4",
         messages: [
           {
             role: "system",
-            content: "請將以下文字中的地名、人名、公司名、學校名與組織名匿名化，用更中性的描述取代。",
+            content: "請將句子中可能涉及人名、地名、公司、學校的部分進行匿名處理，替換成更中性的描述，保持語意完整。",
           },
           {
             role: "user",
@@ -40,16 +40,12 @@ export default async function handler(req, res) {
       }),
     });
 
-    const data = await apiResponse.json();
+    const resultData = await response.json();
 
-    if (!data.choices || data.choices.length === 0) {
-      return res.status(500).json({ error: "No response from OpenAI" });
-    }
-
-    const result = data.choices[0].message.content;
-    res.status(200).json({ result });
-  } catch (error) {
-    console.error("匿名處理錯誤：", error);
-    res.status(500).json({ error: "Internal server error" });
+    const result = resultData?.choices?.[0]?.message?.content ?? "(無結果)";
+    return res.status(200).json({ result });
+  } catch (err) {
+    console.error("匿名處理錯誤：", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 }
