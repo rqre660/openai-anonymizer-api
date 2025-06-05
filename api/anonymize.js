@@ -1,10 +1,19 @@
 export default async function handler(req, res) {
+  // 加上 CORS Headers
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end(); // 預檢請求快速回應
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const body = await req.json(); // ✅ 這一行是關鍵！
+    const body = await req.json();
     const { text } = body;
 
     if (!text || text.trim().length === 0) {
@@ -22,7 +31,7 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: "請將以下文字中的人名、地名、公司名、學校名、組織名等容易識別的資訊匿名化，用較中性描述取代。保留原意與情緒。",
+            content: "請將以下文字中的人名、地名、公司名、學校名、組織名匿名化，用較中性詞語取代。保持語意和情感。",
           },
           {
             role: "user",
@@ -33,10 +42,9 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    const result = data.choices?.[0]?.message?.content ?? "(無結果)";
-    res.status(200).json({ result });
+    res.status(200).json({ result: data.choices?.[0]?.message?.content ?? "(無結果)" });
   } catch (error) {
-    console.error("匿名處理失敗：", error);
+    console.error("匿名處理錯誤：", error);
     res.status(500).json({ error: "OpenAI request failed" });
   }
 }
