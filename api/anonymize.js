@@ -43,7 +43,7 @@ export default async function handler(req, res) {
     console.log("🔍 OpenAI 匿名結果：", JSON.stringify(resultData, null, 2));
 
     const result = resultData?.choices?.[0]?.message?.content?.trim() || "(無結果)";
-    return res.status(200).json({ result });
+    return res.status(200).json({ anonymized:result });
 
   } catch (err) {
     console.error("❌ 匿名 API 錯誤：", err);
