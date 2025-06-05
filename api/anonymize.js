@@ -1,5 +1,5 @@
-import admin from "firebase-admin";
-import { readFileSync } from "fs";
+const admin = require("firebase-admin");
+const { readFileSync } = require("fs");
 
 if (!admin.apps.length) {
   const serviceAccount = JSON.parse(
@@ -13,7 +13,7 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // CORS 設定，允許跨來源請求
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        temperature: 0.3, // 降低隨機性，保持一致性
+        temperature: 0.3,
         messages: [
           {
             role: "system",
@@ -58,8 +58,8 @@ export default async function handler(req, res) {
     console.log("🔍 OpenAI 匿名結果：", JSON.stringify(resultData, null, 2));
 
     const result = resultData?.choices?.[0]?.message?.content?.trim() || "(無結果)";
+
     try {
-      // ✅ 寫入 Firestore
       await db.collection("messages").add({
         original: text,
         anonymized: result,
@@ -68,12 +68,12 @@ export default async function handler(req, res) {
     } catch (dbError) {
       console.error("❌ Firestore 寫入錯誤：", dbError);
       return res.status(500).json({ error: "Failed to save to Firestore" });
-    
-    
-    return res.status(200).json({ anonymized:result });
+    }
+
+    return res.status(200).json({ anonymized: result });
 
   } catch (err) {
     console.error("❌ 匿名 API 錯誤：", err);
     return res.status(500).json({ error: "Internal server error" });
   }
-}
+};
