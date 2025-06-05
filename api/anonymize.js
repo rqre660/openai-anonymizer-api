@@ -65,6 +65,10 @@ export default async function handler(req, res) {
         anonymized: result,
         timestamp: Date.now()
       });
+    } catch (dbError) {
+      console.error("❌ Firestore 寫入錯誤：", dbError);
+      return res.status(500).json({ error: "Failed to save to Firestore" });
+    
     
     return res.status(200).json({ anonymized:result });
 
